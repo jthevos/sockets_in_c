@@ -1,0 +1,29 @@
+▶ ./server
+
+ Client has been connected
+
+ Client has been registered
+
+ Client has been registered
+
+ Client has been registered
+
+ Confirmation packet has been sent
+sent to: Bossman
+Bossman: hellooooo
+
+ Client has been connected
+
+ Client has been registered
+
+ Client has been registered
+
+ Client has been registered
+
+ Confirmation packet has been sent
+sent to: Bossman sent to: JA
+JA: Am i in here??
+ sent to: Bossman sent to: JA
+Bossman: looks like it dude
+ sent to: Bossman sent to: JA
+Bossman: looks like it dude

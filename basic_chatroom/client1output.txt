@@ -1,0 +1,16 @@
+632/code/hw1
+▶ ./client 192.168.1.85 JA 1
+Connection successfully established.
+Registration packet has been sent successfully.
+
+Registration packet has been sent successfully.
+
+Registration packet has been sent successfully.
+
+Confirmation packet has been received successfully.
+
+Am i in here??
+
+JA: Am i in here??
+
+Bossman: looks like it dude

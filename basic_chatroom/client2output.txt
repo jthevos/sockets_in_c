@@ -1,0 +1,18 @@
+▶ ./client 192.168.1.85 Bossman 1
+Connection successfully established.
+Registration packet has been sent successfully.
+
+Registration packet has been sent successfully.
+
+Registration packet has been sent successfully.
+
+Confirmation packet has been received successfully.
+
+hellooooo
+
+Bossman: hellooooo
+
+JA: Am i in here??
+looks like it dude
+
+Bossman: looks like it dude
