@@ -29,7 +29,7 @@ void *receive_thread(int *sock) {
 
 	while(1) {
 		if(recv(*sock, &packet_chat,sizeof(packet_chat),0) < 0) {
-			printf("\n Could not recieve chat packet. \n ");
+			printf("%s\n", "Could not recieve chat packet. \n ");
 			exit(1);
 		}
 		else {
