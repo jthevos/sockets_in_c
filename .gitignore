@@ -37,7 +37,9 @@
 *.hex
 
 # Output text files
-*.txt
+client1output.txt
+client2output.txt
+serveroutput.txt
 
 # Debug files
 *.dSYM/
