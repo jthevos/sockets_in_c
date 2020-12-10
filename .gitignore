@@ -39,6 +39,8 @@
 # Output text files
 client1output.txt
 client2output.txt
+client3output.txt
+client4output.txt
 serveroutput.txt
 
 # Debug files
