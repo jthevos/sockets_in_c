@@ -11,14 +11,13 @@
 #define MAX_LINE 256
 
 
-
 struct packet {
 	short seqNumber;
 	short type;
 	char uName[MAX_LINE];
 	char mName[MAX_LINE];
 	char data[MAX_LINE];
-	int groupNum;         // groupNum is included for multiple rooms in the future
+	int groupNum;
 };
 
 
@@ -28,11 +27,10 @@ void *receive_thread(int *sock) {
     packet_chat.type = htons(131);
 
 	while(1) {
-		if(recv(*sock, &packet_chat,sizeof(packet_chat),0) < 0) {
+		if (recv(*sock, &packet_chat,sizeof(packet_chat),0) < 0) {
 			printf("%s\n", "Could not recieve chat packet. \n ");
 			exit(1);
-		}
-		else {
+		} else {
 			printf("\n%s: %s", packet_chat.uName, packet_chat.data);
 		}
 	}
@@ -62,23 +60,22 @@ int main(int argc, char* argv[]) {
 
 	gethostname(clientname, MAX_LINE);
 
-	if(argc == 4) {
+	if (argc == 4) {
 		host = argv[1];
-	}
-	else {
+	} else {
 		fprintf(stderr, "usage:newclient server\n");
 		exit(1);
 	}
 
 	hp = gethostbyname(host); //translate host name into peer's IP address
 
-	if(!hp) {
+	if (!hp) {
 			fprintf(stderr, "unkown host: %s\n", host);
 			exit(1);
 	}
 
 	// keep an active open socket
-	if((s = socket(PF_INET, SOCK_STREAM, 0)) < 0)  {
+	if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0)  {
 			perror("tcpclient: socket");
 			exit(1);
 	}
@@ -90,12 +87,11 @@ int main(int argc, char* argv[]) {
 	sin.sin_port = htons(SERVER_PORT);
 
 	//check to see if the client program has connected to the server.
-	if(connect(s,(struct sockaddr *)&sin, sizeof(sin)) < 0) {
+	if (connect(s,(struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		perror("tcpclient: connect");
 		close(s);
 		exit(1);
-	}
-	else {
+	} else {
 		printf("%s\n", "Connection successfully established.");
 	}
 
@@ -104,23 +100,21 @@ int main(int argc, char* argv[]) {
 	strcpy(packet_reg.uName, argv[2]);
 	packet_reg.groupNum = atoi(argv[3]);
 
-	// send three registration packets
-	for (int i = 0; i < 3; i++) {
-		if(send(s,&packet_reg,sizeof(packet_reg),0) < 0) {
-			printf("%s\n", "Registration packet failed to send. \n");
+	// send three registration packets, init to 1 for easier debug messages
+	for (int i = 1; i < 4; i++) {
+		if (send(s,&packet_reg,sizeof(packet_reg),0) < 0) {
+			printf("%s%d%s\n", "Registration packet ", i,  " failed to send. \n");
 			exit(1);
-		}
-		else {
+		} else {
 			printf("%s\n", "Registration packet has been sent successfully. \n");
 		}
 	}
 
 	//once the packets have been sent, we wait and receive the acknowledgment from the server
-	if(recv(s,&packet_conf,sizeof(packet_conf),0) < 0) {
+	if (recv(s,&packet_conf,sizeof(packet_conf),0) < 0) {
 		printf("%s\n", "Confirmation packet failed to be received. \n");
 		exit(1);
-	}
-	else {
+	} else {
 		printf("%s\n", "Confirmation packet has been received successfully. \n");
 	}
 

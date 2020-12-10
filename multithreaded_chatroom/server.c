@@ -13,13 +13,16 @@
 #define MAX_LINE 256
 #define MAX_PENDING 5
 
-int clients = 1; // clients represents the number of clients connected
-int bufferindex = 0;
+// clients represents the number of connected clients, assume there will always be one
+int clients = 1;
+int buffer_index = 0;
 int arrayIndex = 0;
-pthread_mutex_t table_mutex = PTHREAD_MUTEX_INITIALIZER;		// global mutex variable
+
+// global mutex variables, we need two to ensure no messages are lost
+pthread_mutex_t table_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-//packet structure for all the packets we are sending and receiving
+//packet structure with added group number
 struct packet {
 	short seqNumber;
 	short type;
@@ -29,7 +32,7 @@ struct packet {
 	int groupNum;
 };
 
-//table structure to store all the information of the clients who are connecting to the server
+// registrationTable with added group number
 struct registrationTable {
 	short seqNumber;
 	int port;
@@ -73,8 +76,7 @@ void *join_handler(struct registrationTable *clientData) {
 	if(recv(newsock,&packet_reg,sizeof(packet_reg),0)<0) {
 		printf("%s\n", "Could not receive registration packet.");
 		exit(1);
-	}
-	else {
+	} else {
 		printf("%s\n", "Client has been registered.\n");
 	}
 
@@ -82,16 +84,14 @@ void *join_handler(struct registrationTable *clientData) {
 	if(recv(newsock,&packet_reg,sizeof(packet_reg),0)<0) {
 		printf("%s\n", "Could not receive registration packet.\n");
 		exit(1);
-	}
-	else {
+	} else {
 		printf("%s\n", "Client has been registered.\n");
 	}
 
 	if(send(newsock,&packet_conf,sizeof(packet_conf),0)<0) {
 		printf("%s\n","Unable to send confirmation packet.\n");
 		exit(1);
-	}
-	else {
+	} else {
 		printf("%s\n", "Confirmation packet has been sent\n");
 	}
 
@@ -103,14 +103,14 @@ void *join_handler(struct registrationTable *clientData) {
 	strcpy(client_info[clients].uName, packet_reg.uName);
 	strcpy(client_info[clients].mName, packet_reg.mName);
 	client_info[clients].groupNum = packet_reg.groupNum;
+
+	// since we were successful, increment number of clients
 	clients++;
 
 	pthread_mutex_unlock(&table_mutex);
 
 	//An acknowledgement packet is sent after 3 registration packets arrive
-
-	while(1)
-	{
+	while(1) {
 		if(recv(newsock, &packet_chat,sizeof(packet_chat),0) < 0) {
 			printf("Chat packet failed to be received correctly.");
 			exit(1);
@@ -139,19 +139,18 @@ void *chat_multicaster() {
 
 	// we want the multicaster always running, thus While True
 	while(1) {
-
 	// but, we only want to send anything if there is a client
 		if (clients > 1) {
-
-			//store the packet at an index into a temp packet
-			if (bufferindex < arrayIndex) {
+			//store the packet at an index into a temp packet because we want preserve the buffer
+			if (buffer_index < arrayIndex) {
 				// lock the buffer mutex
 				pthread_mutex_lock(&buffer_mutex);
 
-				// update temp packet
-				temp.groupNum = buffer[bufferindex].groupNum;
-				strcpy(temp.data, buffer[bufferindex].data);
-				strcpy(temp.uName, buffer[bufferindex].uName);
+				// update temp packet with values from buffer packet
+				temp.groupNum = buffer[buffer_index].groupNum;
+				strcpy(temp.data, buffer[buffer_index].data);
+				strcpy(temp.uName, buffer[buffer_index].uName);
+
 				// unlock the buffer mutex
 				pthread_mutex_unlock(&buffer_mutex);
 
@@ -162,6 +161,8 @@ void *chat_multicaster() {
 				// for this as we know how many clients are tuned in.
 				for (i = 1; i < clients; i++) {
 					s = client_info[i].sockid;
+
+					// ensure separation of groups
 					if(client_info[i].groupNum == temp.groupNum) {
 						if(send(s, &temp,sizeof(temp),0)<0) {
 							printf("Chat packet was not received \n");
@@ -174,7 +175,9 @@ void *chat_multicaster() {
 				}
 
 				printf("\n%s: %s ", temp.uName, temp.data);
-				bufferindex++;
+
+				// Increment buffer_index to be sure all messages are sent
+				buffer_index++;
 
 				//unlock the master table so join handler can access
 				pthread_mutex_unlock(&table_mutex);
@@ -191,7 +194,7 @@ int main(int argc, char* argv[]) {
 	void *exit_value;
 	struct sockaddr_in sin;
 	struct sockaddr_in clientAddr;
-	pthread_t threads[2]; 			//we will need two threads on the server
+	pthread_t threads[2];
 	int s, new_s;
 	int len;
 	int cindex = 0;
@@ -223,16 +226,14 @@ int main(int argc, char* argv[]) {
 	   if((new_s = accept(s, (struct sockaddr *)&clientAddr, &len)) < 0) {
 			perror("tcpserver: accept");
 			exit(1);
-		}
-		else {
+		} else {
 			printf("%s\n", "Client has been connected.");
 		}
 
 		//accept the first registration packet so we know to make the join handler
 		if(recv(new_s,&packet_reg,sizeof(packet_reg),0)<0) {
 			printf("%s\n", "Registration packet failed to be received");
-		}
-		else {
+		} else {
 			printf("%s\n", "Client has been registered\n");
 			client_info[0].sockid = new_s;
 		}
